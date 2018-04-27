@@ -1,0 +1,6 @@
+steps:
+  - label: ":wave:"
+    command: id
+
+  - label: ":whale:"
+    command: docker run --rm docker/whalesay cowsay "Hello, world"

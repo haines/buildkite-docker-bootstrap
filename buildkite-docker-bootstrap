@@ -1,0 +1,33 @@
+#!/bin/bash
+set -euo pipefail
+
+image="075594465351.dkr.ecr.eu-west-1.amazonaws.com/agent"
+
+
+echo "~~~ :closed_lock_with_key: Authenticating with AWS ECR"
+
+eval $(aws ecr get-login --no-include-email --region eu-west-1)
+
+
+echo "~~~ :docker: Running build in ${image}"
+
+docker pull "$image"
+
+buildkite_agent=$(command -v buildkite-agent)
+docker_gid=$(getent group docker | cut -d: -f3)
+
+args=(
+  --group-add "$docker_gid"
+  --rm
+  --volume "${buildkite_agent}:/usr/bin/buildkite-agent"
+  --volume "/var/run/docker.sock:/var/run/docker.sock"
+)
+
+while read -r var; do
+  args+=( --env "$var" )
+done < <(env | grep -E '^(BUILDKITE|CI)(_|=)' | cut -d= -f1 | sort)
+
+exec docker run \
+  "${args[@]}" \
+  "$image" \
+  buildkite-agent bootstrap "$@"

@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+# Grab the buildkite-docker-bootstrap script from S3
+
+aws s3 cp ${source} ${target}
+chmod +x ${target}
+
+
+# Configure the Buildkite agent to use the buildkite-docker-bootstrap script
+
+echo "bootstrap-script=${target}" >> /etc/buildkite-agent/buildkite-agent.cfg
+
+
+# Disable userns-remap (so we can bind-mount the Docker socket into the container)
+
+sed -i 's/  --userns-remap=buildkite-agent//' /etc/sysconfig/docker
+service docker restart
