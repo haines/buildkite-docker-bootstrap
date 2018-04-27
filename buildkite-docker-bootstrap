@@ -17,6 +17,7 @@ buildkite_agent=$(command -v buildkite-agent)
 docker_gid=$(getent group docker | cut -d: -f3)
 
 args=(
+  --env BUILDKITE_AGENT_ACCESS_TOKEN
   --group-add "$docker_gid"
   --rm
   --volume "${buildkite_agent}:/usr/bin/buildkite-agent"
@@ -24,8 +25,8 @@ args=(
 )
 
 while read -r var; do
-  args+=( --env "$var" )
-done < <(env | grep -E '^(BUILDKITE|CI)(_|=)' | cut -d= -f1 | sort)
+  args+=( --env "${var%%=*}" )
+done < "$BUILDKITE_ENV_FILE"
 
 exec docker run \
   "${args[@]}" \

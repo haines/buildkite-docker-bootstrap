@@ -37,3 +37,5 @@ RUN set -x \
  && chown buildkite-agent:buildkite-agent /var/lib/buildkite-agent
 
 USER buildkite-agent
+
+ENV BUILDKITE_BUILD_PATH=/var/lib/buildkite-agent/builds
